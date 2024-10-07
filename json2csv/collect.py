@@ -82,6 +82,8 @@ def oneStudi2csv(studi, anmeldungen, fields, courses):
         if len(course_anmeldungen) == 0:
             values.append("")
         else:
+            if len(course_anmeldungen) != 1:
+                pass
             assert len(course_anmeldungen) == 1
             values.append(course_anmeldungen[0]["Status"])
 
@@ -109,6 +111,8 @@ def courses2csv(all_courses):
     rows = [oneCourse2csv(c,field_names) for c in sorted_courses]
     rows.insert(0, DELIM.join(field_names))
     return "\n".join(rows)+"\n"
+
+
 def oneCourse2csv(course, fields):
     values = [ course['short_title'] ]
     values.append(course['BasicInfo']['lehrpersonen'])
