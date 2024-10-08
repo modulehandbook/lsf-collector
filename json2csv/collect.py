@@ -74,6 +74,13 @@ def short_title(course):
     group_short = match.group(1) if match else group
     return f"{c['BasicInfo']['vst_titel']} - {group_short}"
 
+def get_code(course_title):
+    pattern = r'^(?i)B(\d+(\.\d+)?)'
+    match = re.search(pattern, course_title)
+    if match:
+        return match.group(1)
+    return ""
+
 def oneStudi2csv(studi, anmeldungen, fields, courses):
     eine_anmeldung = anmeldungen[0]
     values = [eine_anmeldung[fn] for fn in fields]
@@ -104,7 +111,7 @@ BasicInfoFields = ['anzahlPlaetze', 'bisherZugelassen', 'offeneBewerbungen', 'da
 
 def courses2csv(all_courses):
     sorted_courses = sorted(all_courses, key=lambda item: item['short_title'])
-    field_names = ["Course", "Lehrperson"]
+    field_names = ["Code", "Course", "Lehrperson"]
     field_names.extend(ANMELDUNGS_STATI)
     field_names.extend(["Summe"])
     field_names.extend(BasicInfoFields)
@@ -114,8 +121,7 @@ def courses2csv(all_courses):
 
 
 def oneCourse2csv(course, fields):
-    values = [ course['short_title'] ]
-    values.append(course['BasicInfo']['lehrpersonen'])
+    values = [get_code(course['short_title']), course['short_title'], course['BasicInfo']['lehrpersonen']]
     for status in ANMELDUNGS_STATI:
         values.append(str(course['Stats'].get(status,"")))
     values.append(str(course['Stats']['Total']))
