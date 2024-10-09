@@ -1,4 +1,4 @@
-
+import hashlib
 import json
 import re
 import itertools
@@ -10,17 +10,36 @@ DELIM=";"
 COURSE_NAME_RE = r'(.*)'
 ANMELDUNGS_STATI = ['ZU', 'AN', 'KA', 'AB', 'ST']
 
+name_map = {}
+matrikelnr_map = {}
+matrikelnr_counter = 100000
+
 def select_course(course):
     regex = COURSE_NAME_RE
     vst_titel = course['BasicInfo']['vst_titel']
     match = re.search(regex, vst_titel)
     return match
 
+def pseudonymize_name(name):
+    if name not in name_map:
+        name_hash = hashlib.sha256(name.encode()).hexdigest()
+        pseudonym = f"Student_{name_hash[:10]}"
+        name_map[name] = pseudonym
+    return name_map[name]
+
+def pseudonymize_matrikelnr(name):
+    global matrikelnr_counter
+    if name not in matrikelnr_map:
+        matrikelnr_map[name] = f"{matrikelnr_counter}"
+        matrikelnr_counter += 1
+    return matrikelnr_map[name]
+
 def group_by_name(teilnehmer):
     tn_sorted = teilnehmer.sort(key= lambda item: item["Name"])
     grouped = itertools.groupby(teilnehmer, lambda item: item["Name"])
     grouped = [(t[0], list(t[1])) for t in grouped]
     return grouped
+
 def select_anmeldung_zulassung(tn_liste_for_one_name):
     for status in ANMELDUNGS_STATI:
         for anmeldung in tn_liste_for_one_name:
@@ -43,6 +62,8 @@ def append_course(studies, course):
     grouped = group_by_name(teilnehmer)
     selected_tn_stati = [(t[0], select_anmeldung_zulassung(t[1])) for t in grouped]
     for studi_anmeldung in selected_tn_stati:
+        studi_anmeldung[1]['Name'] = pseudonymize_name(studi_anmeldung[0])
+        studi_anmeldung[1]['Matrikelnr'] = pseudonymize_matrikelnr(studi_anmeldung[0])
         studi_anmeldung[1]['Course'] = course_title
         studies[studi_anmeldung[0]].append(studi_anmeldung[1])
     add_stati_to_course(course, selected_tn_stati)
@@ -63,7 +84,8 @@ def json2studies(data):
         append_course(studies, c)
     newdict = {}
     for studi, anmeldungen in studies.items():
-        newdict[studi] = sorted(anmeldungen,key=lambda item: item["Course"])
+        name = pseudonymize_name(studi)
+        newdict[name] = sorted(anmeldungen,key=lambda item: item["Course"])
     return newdict
 
 def short_title(course):
@@ -74,7 +96,7 @@ def short_title(course):
     group_short = match.group(1) if match else group
     return f"{c['BasicInfo']['vst_titel']} - {group_short}"
 
-def get_code(course_title):
+def get_course_number(course_title):
     pattern = r'^(?i)B(\d+(\.\d+)?)'
     match = re.search(pattern, course_title)
     if match:
@@ -121,7 +143,7 @@ def courses2csv(all_courses):
 
 
 def oneCourse2csv(course, fields):
-    values = [get_code(course['short_title']), course['short_title'], course['BasicInfo']['lehrpersonen']]
+    values = [get_course_number(course['short_title']), course['short_title'], course['BasicInfo']['lehrpersonen']]
     for status in ANMELDUNGS_STATI:
         values.append(str(course['Stats'].get(status,"")))
     values.append(str(course['Stats']['Total']))
