@@ -156,6 +156,7 @@ def read_file(filename):
     with open(filename) as fp:
         data = json.load(fp)
         return data
+
 def write_output(args, rows):
     if (args.output is None):
         print(rows)
