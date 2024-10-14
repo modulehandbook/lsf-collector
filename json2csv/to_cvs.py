@@ -80,10 +80,11 @@ def oneCourse2csv(course, fields):
     return DELIM.join(values)
 
 
-
 def get_course_number(course_title):
     pattern = r"^B(\d+(\.\d+)?)"
     match = re.search(pattern, course_title)
     if match:
-        return match.group(1)
+        number = match.group(1)
+        number = number.replace(".", ",")
+        return number
     return ""

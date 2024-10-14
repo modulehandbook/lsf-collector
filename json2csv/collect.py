@@ -109,12 +109,6 @@ def short_title(course):
     return f"{c['BasicInfo']['vst_titel']} - {group_short}"
 
 
-def get_course_number(course_title):
-    pattern = r'^(?i)B(\d+(\.\d+)?)'
-    match = re.search(pattern, course_title)
-    if match:
-        return match.group(1)
-    return ""
 
 
 def read_file(filename):

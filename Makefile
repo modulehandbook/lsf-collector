@@ -2,7 +2,7 @@
 .PHONY : fava med balances expenses med fava documents medical beihilfe
 .RECIPEPREFIX = -
 
-input=data/2024-10-09-wise2024-bachelor.json
+input=data/2024-10-14-wise2024-bachelor.json
 ba-courses:
 - python json2csv/main.py ${input} -c -o output/bachelor-courses.csv
 
