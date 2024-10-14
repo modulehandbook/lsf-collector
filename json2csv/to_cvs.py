@@ -1,18 +1,22 @@
-from anmeldungen import ANMELDUNGS_STATI, SUM_KEY
+import re
+from anmeldungen import ANMELDUNGS_STATI, SUM_KEY, group_anmeldungen_by_status
 
-DELIM=";"
-STUDI_FIELDS= ["Name", "Matrikelnr", "Studiengang", "FS"]
+DELIM = ";"
+
+
+STUDI_FIELDS = ["Name", "Matrikelnr", "Studiengang", "FS"]
 
 BasicInfoFields = ['anzahlPlaetze', 'bisherZugelassen', 'offeneBewerbungen', 'davonMitHoherPrio',
                      'davonMitNiedrigerPrio']
 
 
-from anmeldungen import ANMELDUNGS_STATI, group_anmeldungen_by_status
 
 def studies_sums_field_names():
     sum_fields = [SUM_KEY]
     sum_fields.extend(ANMELDUNGS_STATI)
     return sum_fields
+
+
 def studies_field_names(all_courses):
     field_names = STUDI_FIELDS.copy()
     field_names.extend(studies_sums_field_names())
@@ -56,16 +60,17 @@ def oneStudi2csv(studi, anmeldungen, studi_fields, courses):
 
 def courses2csv(all_courses):
     sorted_courses = sorted(all_courses, key=lambda item: item['short_title'])
-    field_names = ["Course", "Lehrperson"]
+    field_names = ["Code", "Course", "Lehrperson"]
     field_names.extend(ANMELDUNGS_STATI)
     field_names.extend(["Summe"])
     field_names.extend(BasicInfoFields)
-    rows = [oneCourse2csv(c,field_names) for c in sorted_courses]
+    rows = [oneCourse2csv(c, field_names) for c in sorted_courses]
     rows.insert(0, DELIM.join(field_names))
     return "\n".join(rows)+"\n"
 
+
 def oneCourse2csv(course, fields):
-    values = [ course['short_title'] ]
+    values = [get_course_number(course['short_title']), course['short_title']]              
     values.append(course['BasicInfo']['lehrpersonen'])
     for status in ANMELDUNGS_STATI:
         values.append(str(course['Stats'].get(status,"")))
@@ -73,3 +78,12 @@ def oneCourse2csv(course, fields):
     for field_name in BasicInfoFields:
         values.append(str(course['BasicInfo'][field_name]))
     return DELIM.join(values)
+
+
+
+def get_course_number(course_title):
+    pattern = r"^B(\d+(\.\d+)?)"
+    match = re.search(pattern, course_title)
+    if match:
+        return match.group(1)
+    return ""

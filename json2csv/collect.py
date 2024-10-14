@@ -13,11 +13,13 @@ name_map = {}
 matrikelnr_map = {}
 matrikelnr_counter = 100000
 
+
 def select_course(course):
     regex = COURSE_NAME_RE
     vst_titel = course['BasicInfo']['vst_titel']
     match = re.search(regex, vst_titel)
     return match
+
 
 def pseudonymize_name(name):
     if name not in name_map:
@@ -26,6 +28,7 @@ def pseudonymize_name(name):
         name_map[name] = pseudonym
     return name_map[name]
 
+
 def pseudonymize_matrikelnr(name):
     global matrikelnr_counter
     if name not in matrikelnr_map:
@@ -33,11 +36,13 @@ def pseudonymize_matrikelnr(name):
         matrikelnr_counter += 1
     return matrikelnr_map[name]
 
+
 def group_by_name(teilnehmer):
     tn_sorted = teilnehmer.sort(key= lambda item: item["Name"])
     grouped = itertools.groupby(teilnehmer, lambda item: item["Name"])
     grouped = [(t[0], list(t[1])) for t in grouped]
     return grouped
+
 
 def select_anmeldung_zulassung(tn_liste_for_one_name):
     for status in ANMELDUNGS_STATI:
@@ -46,6 +51,7 @@ def select_anmeldung_zulassung(tn_liste_for_one_name):
                 return anmeldung
     raise Exception.new
 
+
 def add_stati_to_course(course, selected_tn_stati):
     c = Counter()
     for studi, anmeldung in selected_tn_stati:
@@ -53,6 +59,7 @@ def add_stati_to_course(course, selected_tn_stati):
     stats = dict(c)
     stats['Total'] = c.total()
     course['Stats'] = stats
+
 
 def append_course(studies, course):
     teilnehmer = course["Teilnehmer"]
@@ -76,6 +83,7 @@ def all_courses(data):
     selected_courses = [c for c in data if select_course(c)]
     return sorted([short_title(c) for c in selected_courses])
 
+
 def json2studies(data):
     data = [c for c in data if select_course(c)]
     studies = defaultdict(list)
@@ -86,6 +94,7 @@ def json2studies(data):
         name = pseudonymize_name(studi)
         newdict[name] = sorted(anmeldungen,key=lambda item: item["Course"])
     return newdict
+
 
 def short_title(course):
     c = course
@@ -160,6 +169,3 @@ def run(args):
     #print("\n".join(all_courses(data)))
     write_output(args, rows)
 
-
-if __name__ == '__main__':
-    run()
