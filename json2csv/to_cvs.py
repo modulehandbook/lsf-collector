@@ -1,32 +1,54 @@
-
+from anmeldungen import ANMELDUNGS_STATI, SUM_KEY
 
 DELIM=";"
+STUDI_FIELDS= ["Name", "Matrikelnr", "Studiengang", "FS"]
 
 BasicInfoFields = ['anzahlPlaetze', 'bisherZugelassen', 'offeneBewerbungen', 'davonMitHoherPrio',
                      'davonMitNiedrigerPrio']
 
 
-from anmeldungen import ANMELDUNGS_STATI
+from anmeldungen import ANMELDUNGS_STATI, group_anmeldungen_by_status
+
+def studies_sums_field_names():
+    sum_fields = [SUM_KEY]
+    sum_fields.extend(ANMELDUNGS_STATI)
+    return sum_fields
+def studies_field_names(all_courses):
+    field_names = STUDI_FIELDS.copy()
+    field_names.extend(studies_sums_field_names())
+    field_names.extend(all_courses)
+    return field_names
 
 def studies2csv(studies, all_courses):
-    fields = ["Name", "Matrikelnr", "Studiengang", "FS"]
-    field_names = fields.copy()
-    field_names.extend(all_courses)
-    rows = [oneStudi2csv(s,a, fields, all_courses) for s, a in studies.items()]
+    rows = [oneStudi2csv(s,a, STUDI_FIELDS, all_courses) for s, a in studies.items()]
+    field_names = studies_field_names(all_courses)
     rows.insert(0, DELIM.join(field_names))
     return "\n".join(rows)
 
-def oneStudi2csv(studi, anmeldungen, fields, courses):
+def oneStudi2csv(studi, anmeldungen, studi_fields, courses):
+    # student info is the same in all anmeldungen, get it from first one
     eine_anmeldung = anmeldungen[0]
-    values = [eine_anmeldung[fn] for fn in fields]
+    values = [eine_anmeldung[fn] for fn in studi_fields]
+
+    stati_sums = group_anmeldungen_by_status(anmeldungen)
+    for one_sum in studies_sums_field_names():
+        values.append(str(stati_sums.get(one_sum, "")))
+
     for course in courses:
         course_anmeldungen = [a for a in anmeldungen if a['Course'] == course]
         if len(course_anmeldungen) == 0:
             values.append("")
         else:
             if len(course_anmeldungen) != 1:
-                raise ValueError("There should at most be one anmeldung per course at this point")
-            assert len(course_anmeldungen) == 1
+                if len(course_anmeldungen) == 2:
+                    if course_anmeldungen[0] != course_anmeldungen[1]:
+                        print("----zwei anmeldungen:")
+                        print("\n".join([str(a) for a in course_anmeldungen]))
+                        #raise ValueError("There should at most be one anmeldung per course at this point")
+                else:
+                    raise ValueError("There should at most be one anmeldung per course at this point")
+
+
             values.append(course_anmeldungen[0]["Status"])
 
     return DELIM.join(values)

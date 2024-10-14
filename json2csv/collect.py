@@ -68,9 +68,13 @@ def json2studies(data):
 def short_title(course):
     c = course
     group = c['BasicInfo']['gruppe']
-    pattern = re.compile(r'Gruppe:1.Zug,(\d.Gruppe)')
+    #pattern = re.compile(r'Gruppe:1.Zug,(\d.Gruppe)')
+    pattern = re.compile(r'Gruppe:(.*)')
     match = re.match(pattern, group)
+    if not match:
+        pass
     group_short = match.group(1) if match else group
+    #group_short = group
     return f"{c['BasicInfo']['vst_titel']} - {group_short}"
 
 
@@ -105,8 +109,8 @@ def run(args):
     # titles = [short_title(c) for c in data]
 
     # print("\n".join(name_numbers))
-    print(f"{len(studies)} Studis")
-    print(f"{sum(numbers)} Einzelanmeldungen")
+    #print(f"{len(studies)} Studis")
+    #print(f"{sum(numbers)} Einzelanmeldungen")
 
 
     #print(numbers)
@@ -114,7 +118,7 @@ def run(args):
     #print(sorted_numbers)
     grouped_numbers = itertools.groupby(sorted_numbers)
     grouped_numbers = [(n[0], len(list(n[1]))) for n in grouped_numbers]
-    print(grouped_numbers)
+    #print(grouped_numbers)
     #grouped_numbers = [(n[0],list(n[1])) for n in grouped_numbers]
     #print(list(grouped_numbers))
 
@@ -125,7 +129,7 @@ def run(args):
 
     #print(rows)
     #print("\n".join(rows))
-    print("\n".join(all_courses(data)))
+    #print("\n".join(all_courses(data)))
     write_output(args, rows)
 
 

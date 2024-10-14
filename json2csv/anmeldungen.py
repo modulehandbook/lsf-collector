@@ -11,5 +11,5 @@ def group_anmeldungen_by_status(anmeldungen):
     grouped = [(t[0], len(list(t[1]))) for t in grouped]
     grouped.reverse()
     grouped.insert(0,(SUM_KEY, len(anmeldungen)))
-    grouped_dict = dict((y, x) for x, y in grouped)
+    grouped_dict = dict((x, y) for x, y in grouped)
     return grouped_dict
