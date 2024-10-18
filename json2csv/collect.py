@@ -3,7 +3,7 @@ import json
 import re
 import itertools
 from collections import defaultdict, namedtuple, Counter
-
+from faker import Faker
 
 DELIM=";"
 #COURSE_NAME_RE = r'B21.\d - B23.\d(.*?)\(Ü\)'
@@ -20,10 +20,10 @@ def select_course(course):
     match = re.search(regex, vst_titel)
     return match
 
+fake = Faker()
 def pseudonymize_name(name):
     if name not in name_map:
-        name_hash = hashlib.sha256(name.encode()).hexdigest()
-        pseudonym = f"Student_{name_hash[:10]}"
+        pseudonym = fake.name()
         name_map[name] = pseudonym
     return name_map[name]
 
