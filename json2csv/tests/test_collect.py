@@ -1,5 +1,8 @@
 import json
+import csv
+from io import StringIO
 import os
+
 import pytest
 from json2csv import collect
 
@@ -135,21 +138,68 @@ def test_courses2csv(course_data):
     assert output == expected_output
 
 
-@pytest.mark.skip(reason="TODO")
-def test_one_course2csv():
-    assert True
+def test_one_course2csv(course_data):
+    studies = collect.json2studies(course_data)
+    for course in course_data:
+        studies = collect.append_course(studies, course)
+
+    fields = ["Name", "Matrikelnr", "Studiengang", "FS"]
+    course = course_data[0]
+    expected_output = "21.1;B21.1 - B23.1 VCAT2 Visual Computing -  Aktuelle Themen 2: Applikationsentwicklung unter iOS (Ü) - 2.Gruppe;Jung;2;;;;;2;22; 20;5;1;4"
+    output = collect.oneCourse2csv(course, fields)
+    assert expected_output == output
 
 
-@pytest.mark.skip(reason="TODO")
-def test_read_file():
-    assert True
+# for test_run_courselist() & test_run_courselist()
+class Args:
+    def __init__(self, filename, course_list, output):
+        self.filename = filename
+        self.courselist = course_list
+        self.output = output
 
 
-@pytest.mark.skip(reason="TODO")
-def test_write_output():
-    assert True
+# for test_run_courselist() & test_run_courselist()
+def read_csv_to_string(file_path):
+    output = StringIO()
+    with open(file_path, mode='r', newline='', encoding='utf-8') as csv_file:
+        csv_reader = csv.reader(csv_file)
+        for row in csv_reader:
+            output.write(';'.join(row) + '\n')
+    return output.getvalue()
 
 
-@pytest.mark.skip(reason="TODO")
-def test_run():
-        assert True
+def test_run_courselist():
+    args = Args(
+        filename="json2csv/tests/test_data.json",
+        course_list="true",
+        output="json2csv/tests/runTest.csv"
+    )
+    expected_output = ('Code;Course;Lehrperson;ZU;AN;KA;AB;ST;Summe;anzahlPlaetze;bisherZugelassen;offeneBewerbungen;davonMitHoherPrio;davonMitNiedrigerPrio\n'
+                       '21.1;B21.1 - B23.1 VCAT2 Visual Computing -  Aktuelle Themen 2: '
+                       'Applikationsentwicklung unter iOS (Ü) - 2.Gruppe;Jung;2;;;;;2;22; 20;5;1;4\n'
+                       '21.2;B21.2 - B23.2 WT2: Usability (Ü) - 1.Gruppe;Hajinejad;;;;2;;2;22; '
+                       '23;24;24;0\n'
+                       '\n')
+    collect.run(args)
+
+    output = read_csv_to_string("json2csv/tests/runTest.csv")
+    assert expected_output == output
+
+
+def test_run_without_courselist():
+    args = Args(
+        filename="json2csv/tests/test_data.json",
+        course_list=None,
+        output="json2csv/tests/runTestWithoutCourselist.csv"
+    )
+    expected_output = ('Name;Matrikelnr;Studiengang;FS;B21.1 - B23.1 VCAT2 Visual Computing -  '
+                       'Aktuelle Themen 2: Applikationsentwicklung unter iOS (Ü) - 2.Gruppe;B21.2 - '
+                       'B23.2 WT2: Usability (Ü) - 1.Gruppe\n'
+                       'Jane Doe;100002;IMI (B);11;ZU;\n'
+                       'Noah Clark;100003;IMI (B);10;ZU;\n'
+                       'John Doe;100000;IMI (B);6;;AB\n'
+                       'Max Mustermann;100001;IMI (B);12;;AB\n')
+    collect.run(args)
+
+    output = read_csv_to_string("json2csv/tests/runTestWithoutCourselist.csv")
+    assert expected_output == output
