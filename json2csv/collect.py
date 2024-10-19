@@ -46,7 +46,7 @@ def select_anmeldung_zulassung(tn_liste_for_one_name):
         for anmeldung in tn_liste_for_one_name:
             if anmeldung['Status'] == status:
                 return anmeldung
-    raise Exception.new
+    raise Exception("No matching status found")
 
 def add_stati_to_course(course, selected_tn_stati):
     c = Counter()

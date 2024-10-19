@@ -1,17 +1,14 @@
 import json
+import os
+import pytest
 import csv
 from io import StringIO
-import os
-
-import pytest
 from json2csv import collect
-
 
 def custom_read_file(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
         data = json.load(file)
         return data
-
 
 @pytest.fixture
 def course_data():
@@ -39,35 +36,71 @@ def test_pseudonymize_name(course_data):
     assert pseudonym[0] != pseudonym[1]
 
 
-@pytest.mark.skip(reason="TODO")
-def test_pseudonymize_matrikelnr():
-    assert True
+def test_pseudonymize_matrikelnr(course_data):
+    names = [participant['Name'] for participant in course_data[1]['Teilnehmer']]
+    pseudonymous_number = [collect.pseudonymize_matrikelnr(name) for name in names]
+    assert collect.pseudonymize_matrikelnr('John Doe') == pseudonymous_number[0]
+    assert collect.pseudonymize_matrikelnr('Max Mustermann') == pseudonymous_number[1]
+    assert pseudonymous_number[0] != pseudonymous_number[1]
 
-@pytest.mark.skip(reason="TODO")
-def test_group_by_name():
-    assert True
 
-@pytest.mark.skip(reason="TODO")
-def test_select_anmeldung_zulassung():
-    assert True
+def test_group_by_name(course_data):
+    participants = [participant for course in course_data for participant in course.get('Teilnehmer', [])]
+    grouped_result = collect.group_by_name(participants)
+    assert len(grouped_result) > 0
+    for name, group in grouped_result:
+        assert all(item['Name'] == name for item in group)
+    total_count = sum(len(group) for _, group in grouped_result)
+    assert total_count == len(participants)
 
-@pytest.mark.skip(reason="TODO")
-def test_add_stati_to_course():
-    assert True
+
+def test_select_anmeldung_zulassung(course_data):
+    tn_liste_for_one_name = course_data[0]['Teilnehmer']
+    selected1 = collect.select_anmeldung_zulassung(tn_liste_for_one_name)
+    assert selected1['Status'] == 'ZU'
+    tn_liste_for_another_name = course_data[1]['Teilnehmer']
+    selected2 = collect.select_anmeldung_zulassung(tn_liste_for_another_name)
+    assert selected2['Status'] == 'AB'
+    try:
+        tn_liste_no_priority = [{'Status': 'XX'}, {'Status': 'YY'}]
+        collect.select_anmeldung_zulassung(tn_liste_no_priority)
+    except Exception as e:
+        assert str(e) == "No matching status found"
+
+
+def test_add_stati_to_course(course_data):
+    course1 = course_data[0]
+    selected_tn_stati1 = [(tn['Name'], tn) for tn in course1['Teilnehmer']]
+    collect.add_stati_to_course(course1, selected_tn_stati1)
+    expected_stats1 = {
+        'ZU': 2,
+        'Total': 2
+    }
+    assert course1['Stats'] == expected_stats1
+
+    course2 = course_data[1]
+    selected_tn_stati2 = [(tn['Name'], tn) for tn in course2['Teilnehmer']]
+    collect.add_stati_to_course(course2, selected_tn_stati2)
+    expected_stats2 = {
+        'AB': 3,
+        'Total': 3
+    }
+    assert course2['Stats'] == expected_stats2
+
 
 @pytest.mark.skip(reason="TODO")
 def test_append_course():
     assert True
 
+
 @pytest.mark.skip(reason="TODO")
 def test_all_courses():
     assert True
 
+
 @pytest.mark.skip(reason="TODO")
 def test_json2studies():
     assert True
-
-#--------------------------------------------------------------------
 
 
 def test_short_title(course_data):
