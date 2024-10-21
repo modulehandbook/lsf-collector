@@ -88,19 +88,32 @@ def test_add_stati_to_course(course_data):
     assert course2['Stats'] == expected_stats2
 
 
-@pytest.mark.skip(reason="TODO")
-def test_append_course():
-    assert True
+def test_append_course(course_data):
+    studies = collect.defaultdict(list)
+    for course in course_data:
+        collect.append_course(studies, course)
+    expected_studies = {
+        'Jane Doe': [{'Matrikelnr': '100002','Name': 'Jane Doe','Studiengang': 'IMI (B)','Status': 'ZU','Prio': '2','Los': '3435444759527443','FS': '11','Zeit': '15.09.202418:02:43','Course': 'B21.1 - B23.1 VCAT2 Visual Computing -  Aktuelle Themen 2: ''Applikationsentwicklung unter iOS (Ü) - 2.Gruppe'}],
+        'Noah Clark': [{'Matrikelnr': '100003','Name': 'Noah Clark','Studiengang': 'IMI (B)','Status': 'ZU','Prio': '2','Los': '8266970658560711','FS': '10','Zeit': '26.09.202410:58:39','Course': 'B21.1 - B23.1 VCAT2 Visual Computing -  Aktuelle Themen 2: ''Applikationsentwicklung unter iOS (Ü) - 2.Gruppe'}]
+    }
+    for name in expected_studies:
+        assert name in studies
+        assert studies[name] == expected_studies[name]
 
 
-@pytest.mark.skip(reason="TODO")
-def test_all_courses():
-    assert True
+def test_all_courses(course_data):
+    result = collect.all_courses(course_data)
+    expected_result = ['B21.1 - B23.1 VCAT2 Visual Computing -  Aktuelle Themen 2: ''Applikationsentwicklung unter iOS (Ü) - 2.Gruppe','B21.2 - B23.2 WT2: Usability (Ü) - 1.Gruppe']
+    assert result == expected_result
 
-
-@pytest.mark.skip(reason="TODO")
-def test_json2studies():
-    assert True
+def test_json2studies(course_data):
+    result = collect.json2studies(course_data)
+    expected_result = {
+        'Jane Doe': [{'Course': 'B21.1 - B23.1 VCAT2 Visual Computing -  Aktuelle ''Themen 2: Applikationsentwicklung unter iOS (Ü) - ''2.Gruppe','FS': '11','Los': '3435444759527443','Matrikelnr': '100002','Name': 'Jane Doe','Prio': '2','Status': 'ZU','Studiengang': 'IMI (B)','Zeit': '15.09.202418:02:43'}],
+        'John Doe': [{'Course': 'B21.2 - B23.2 WT2: Usability (Ü) - 1.Gruppe','FS': '6','Los': '9915927829841474','Matrikelnr': '100000','Name': 'John Doe','Prio': '1','Status': 'AB','Studiengang': 'IMI (B)','Zeit': '17.09.202416:24:27'}],
+        'Max Mustermann': [{'Course': 'B21.2 - B23.2 WT2: Usability (Ü) - 1.Gruppe','FS': '12','Los': '8295249285091866','Matrikelnr': '100001','Name': 'Max Mustermann','Prio': '1','Status': 'AB','Studiengang': 'IMI (B)','Zeit': '11.09.202415:16:32'}],
+        'Noah Clark': [{'Course': 'B21.1 - B23.1 VCAT2 Visual Computing -  Aktuelle ''Themen 2: Applikationsentwicklung unter iOS (Ü) - ''2.Gruppe','FS': '10','Los': '8266970658560711','Matrikelnr': '100003','Name': 'Noah Clark','Prio': '2','Status': 'ZU','Studiengang': 'IMI (B)','Zeit': '26.09.202410:58:39'}]}
+    assert result == expected_result
 
 
 def test_short_title(course_data):
