@@ -1,13 +1,16 @@
 
-.PHONY : fava med balances expenses med fava documents medical beihilfe
+.PHONY : xxx
 .RECIPEPREFIX = -
 
-input=data/2024-10-14-wise2024-bachelor.json
+date_tag=$(shell date +%Y-%m-%d--%H-%M-%S)
+date=$(shell date +%Y-%m-%d)
+
+input=data/2024-10-18-wise2024-bachelor.json
 ba-courses:
-- python json2csv/main.py ${input} -c -o output/bachelor-courses.csv
+- python json2csv/main.py ${input} -c -o output/bachelor-courses-$(date_tag).csv
 
 ba-studies:
-- python json2csv/main.py ${input} -o output/bachelor-studies.csv
+- python json2csv/main.py ${input} -o output/bachelor-studies-$(date_tag).csv
 
 inputm=data/2024-10-09-wise2024-master.json
 ma-courses:
