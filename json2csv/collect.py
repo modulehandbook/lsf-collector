@@ -3,6 +3,7 @@ import json
 import re
 import itertools
 from collections import defaultdict, namedtuple, Counter
+from faker import Faker
 from anmeldungen import ANMELDUNGS_STATI
 from to_cvs import courses2csv, studies2csv
 
@@ -23,8 +24,7 @@ def select_course(course):
 
 def pseudonymize_name(name):
     if name not in name_map:
-        name_hash = hashlib.sha256(name.encode()).hexdigest()
-        pseudonym = f"Student_{name_hash[:10]}"
+        pseudonym = Faker().name()
         name_map[name] = pseudonym
     return name_map[name]
 
@@ -49,7 +49,7 @@ def select_anmeldung_zulassung(tn_liste_for_one_name):
         for anmeldung in tn_liste_for_one_name:
             if anmeldung['Status'] == status:
                 return anmeldung
-    raise Exception.new
+    raise Exception("No matching status found")
 
 
 def add_stati_to_course(course, selected_tn_stati):
@@ -109,8 +109,6 @@ def short_title(course):
     group_short = match.group(1) if match else group
     #group_short = group
     return f"{c['BasicInfo']['vst_titel']} - {group_short}"
-
-
 
 
 def read_file(filename):
