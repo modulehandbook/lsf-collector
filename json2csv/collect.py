@@ -101,8 +101,8 @@ def json2studies(data):
 def short_title(course):
     c = course
     group = c['BasicInfo']['gruppe']
-    #pattern = re.compile(r'Gruppe:1.Zug,(\d.Gruppe)')
-    pattern = re.compile(r'Gruppe:(.*)')
+    pattern = re.compile(r'Gruppe:1.Zug,(\d.Gruppe)')
+    #pattern = re.compile(r'Gruppe:(.*)')
     match = re.match(pattern, group)
     if not match:
         pass
