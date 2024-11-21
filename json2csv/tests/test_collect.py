@@ -1,9 +1,12 @@
 import json
 import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import pytest
 import csv
 from io import StringIO
-from json2csv import collect
+from json2csv import collect, to_cvs
 
 def custom_read_file(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
@@ -126,13 +129,13 @@ def test_short_title(course_data):
 
 def test_get_course_number_with_valid_number(course_data):
     course_title = course_data[0]['BasicInfo']['vst_titel']
-    result = collect.get_course_number(course_title)
-    assert result == "21.1"
+    result = to_cvs.get_course_number(course_title)
+    assert result == "21,1"
 
 
 def test_get_course_number_with_no_valid_number():
     course_title = "English for International Media and Computing, M3Ts (GER B2.2)"
-    result = collect.get_course_number(course_title)
+    result = to_cvs.get_course_number(course_title)
     assert result == ""
 
 
@@ -144,29 +147,29 @@ def test_oneStudi2csv(course_data):
     ]
     courses = [collect.short_title(c) for c in course_data]
 
-    expected_output = "John Doe;100001;IMI (B);6;AB;"
-    output = collect.oneStudi2csv(student, anmeldungen, fields, courses)
+    expected_output = "John Doe;100001;IMI (B);6;1;;;;1;;AB;"
+    output = to_cvs.oneStudi2csv(student, anmeldungen, fields, courses)
     assert output == expected_output
 
 
 def test_studies2csv(course_data):
     studies = collect.json2studies(course_data)
     courses = [collect.short_title(c) for c in course_data]
-    expected_output =  ('Name;Matrikelnr;Studiengang;FS;B21.1 - B23.1 VCAT2 Visual Computing -  '
-                        'Aktuelle Themen 2: Applikationsentwicklung unter iOS (Ü) - 2.Gruppe;B21.2 - '
-                        'B23.2 WT2: Usability (Ü) - 1.Gruppe\n'
-                        ';100002;IMI (B);11;ZU;\n'
-                        ';100003;IMI (B);10;ZU;\n'
-                        ';100000;IMI (B);6;;AB\n'
-                        ';100001;IMI (B);12;;AB')
+    expected_output =  ('Name;Matrikelnr;Studiengang;FS;Sum;ZU;AN;KA;AB;ST;B21.1 - B23.1 VCAT2 Visual '
+                        'Computing -  Aktuelle Themen 2: Applikationsentwicklung unter iOS (Ü) - '
+                        '2.Gruppe;B21.2 - B23.2 WT2: Usability (Ü) - 1.Gruppe\n'
+                        'Jane Doe;100002;IMI (B);11;1;1;;;;;ZU;\n'
+                        'Noah Clark;100003;IMI (B);10;1;1;;;;;ZU;\n'
+                        'John Doe;100000;IMI (B);6;1;;;;1;;;AB\n'
+                        'Max Mustermann;100001;IMI (B);12;1;;;;1;;;AB')
 
-    output = collect.studies2csv(studies, courses)
+    output = to_cvs.studies2csv(studies, courses)
     output_lines = output.split('\n')
     expected_lines = expected_output.split('\n')
 
-    assert len(output_lines) == len(expected_lines)
+    assert len(expected_lines) == len(output_lines)
 
-    for out_line, exp_line in zip(output_lines, expected_lines):
+    for out_line, exp_line in zip(expected_lines, output_lines):
         assert exp_line in out_line
 
 
@@ -176,9 +179,9 @@ def test_courses2csv(course_data):
         studies = collect.append_course(studies, course)
 
     expected_output = ('Code;Course;Lehrperson;ZU;AN;KA;AB;ST;Summe;anzahlPlaetze;bisherZugelassen;offeneBewerbungen;davonMitHoherPrio;davonMitNiedrigerPrio\n'
-                       '21.1;B21.1 - B23.1 VCAT2 Visual Computing -  Aktuelle Themen 2: '
+                       '21,1;B21.1 - B23.1 VCAT2 Visual Computing -  Aktuelle Themen 2: '
                        'Applikationsentwicklung unter iOS (Ü) - 2.Gruppe;Jung;2;;;;;2;22; 20;5;1;4\n'
-                       '21.2;B21.2 - B23.2 WT2: Usability (Ü) - 1.Gruppe;Hajinejad;;;;2;;2;22; '
+                       '21,2;B21.2 - B23.2 WT2: Usability (Ü) - 1.Gruppe;Hajinejad;;;;2;;2;22; '
                        '23;24;24;0\n')
     output = collect.courses2csv(course_data)
     assert output == expected_output
@@ -191,8 +194,8 @@ def test_one_course2csv(course_data):
 
     fields = ["Name", "Matrikelnr", "Studiengang", "FS"]
     course = course_data[0]
-    expected_output = "21.1;B21.1 - B23.1 VCAT2 Visual Computing -  Aktuelle Themen 2: Applikationsentwicklung unter iOS (Ü) - 2.Gruppe;Jung;2;;;;;2;22; 20;5;1;4"
-    output = collect.oneCourse2csv(course, fields)
+    expected_output = "21,1;B21.1 - B23.1 VCAT2 Visual Computing -  Aktuelle Themen 2: Applikationsentwicklung unter iOS (Ü) - 2.Gruppe;Jung;2;;;;;2;22; 20;5;1;4"
+    output = to_cvs.oneCourse2csv(course, fields)
     assert expected_output == output
 
 
@@ -208,7 +211,7 @@ class Args:
 def read_csv_to_string(file_path):
     output = StringIO()
     with open(file_path, mode='r', newline='', encoding='utf-8') as csv_file:
-        csv_reader = csv.reader(csv_file)
+        csv_reader = csv.reader(csv_file, delimiter=';')
         for row in csv_reader:
             output.write(';'.join(row) + '\n')
     return output.getvalue()
@@ -221,10 +224,8 @@ def test_run_courselist():
         output="json2csv/tests/runTest.csv"
     )
     expected_output = ('Code;Course;Lehrperson;ZU;AN;KA;AB;ST;Summe;anzahlPlaetze;bisherZugelassen;offeneBewerbungen;davonMitHoherPrio;davonMitNiedrigerPrio\n'
-                       '21.1;B21.1 - B23.1 VCAT2 Visual Computing -  Aktuelle Themen 2: '
-                       'Applikationsentwicklung unter iOS (Ü) - 2.Gruppe;Jung;2;;;;;2;22; 20;5;1;4\n'
-                       '21.2;B21.2 - B23.2 WT2: Usability (Ü) - 1.Gruppe;Hajinejad;;;;2;;2;22; '
-                       '23;24;24;0\n'
+                       '21,1;B21.1 - B23.1 VCAT2 Visual Computing -  Aktuelle Themen 2: Applikationsentwicklung unter iOS (Ü) - 2.Gruppe;Jung;2;;;;;2;22; 20;5;1;4\n'
+                       '21,2;B21.2 - B23.2 WT2: Usability (Ü) - 1.Gruppe;Hajinejad;;;;2;;2;22; 23;24;24;0\n'
                        '\n')
     collect.run(args)
 
@@ -238,13 +239,11 @@ def test_run_without_courselist():
         course_list=None,
         output="json2csv/tests/runTestWithoutCourselist.csv"
     )
-    expected_output = ('Name;Matrikelnr;Studiengang;FS;B21.1 - B23.1 VCAT2 Visual Computing -  '
-                       'Aktuelle Themen 2: Applikationsentwicklung unter iOS (Ü) - 2.Gruppe;B21.2 - '
-                       'B23.2 WT2: Usability (Ü) - 1.Gruppe\n'
-                       'Jane Doe;100002;IMI (B);11;ZU;\n'
-                       'Noah Clark;100003;IMI (B);10;ZU;\n'
-                       'John Doe;100000;IMI (B);6;;AB\n'
-                       'Max Mustermann;100001;IMI (B);12;;AB\n')
+    expected_output = ('Name;Matrikelnr;Studiengang;FS;Sum;ZU;AN;KA;AB;ST;B21.1 - B23.1 VCAT2 Visual Computing -  Aktuelle Themen 2: Applikationsentwicklung unter iOS (Ü) - 2.Gruppe;B21.2 - B23.2 WT2: Usability (Ü) - 1.Gruppe\n'
+                       'Jane Doe;100002;IMI (B);11;1;1;;;;;ZU;\n'
+                       'Noah Clark;100003;IMI (B);10;1;1;;;;;ZU;\n'
+                       'John Doe;100000;IMI (B);6;1;;;;1;;;AB\n'
+                       'Max Mustermann;100001;IMI (B);12;1;;;;1;;;AB\n')
     collect.run(args)
 
     output = read_csv_to_string("json2csv/tests/runTestWithoutCourselist.csv")
