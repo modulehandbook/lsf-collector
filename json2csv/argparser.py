@@ -11,3 +11,5 @@ parser.add_argument('-c', '--courselist',
                     action='store_true')
 parser.add_argument('-v', '--verbose',
                     action='store_true')  # on/off flag
+parser.add_argument('-p', '--pseudonymize',
+                    action='store_true')

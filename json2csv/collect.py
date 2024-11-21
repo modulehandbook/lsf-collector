@@ -68,9 +68,7 @@ def append_course(studies, course):
     grouped = group_by_name(teilnehmer)
     selected_tn_stati = [(t[0], select_anmeldung_zulassung(t[1])) for t in grouped]
     for studi_anmeldung in selected_tn_stati:
-        #studi_anmeldung[1]['Name'] = pseudonymize_name(studi_anmeldung[0])
         studi_anmeldung[1]['Name'] = studi_anmeldung[0]
-        #studi_anmeldung[1]['Matrikelnr'] = pseudonymize_matrikelnr(studi_anmeldung[0])
         studi_anmeldung[1]['Course'] = course_title
         studies[studi_anmeldung[0]].append(studi_anmeldung[1])
     add_stati_to_course(course, selected_tn_stati)
@@ -93,7 +91,6 @@ def json2studies(data):
     newdict = {}
     for studi_name, anmeldungen in studies.items():
         name = studi_name
-        # name = pseudonymize_name(studi_name)
         newdict[name] = sorted(anmeldungen,key=lambda item: item["Course"])
     return newdict
 
@@ -129,6 +126,13 @@ def write_output(args, rows):
 def run(args):
     filename = args.filename
     data = read_file(filename)
+
+    if(args.pseudonymize):
+        for course in data:
+            for participant in course['Teilnehmer']:
+                participant['Name'] = pseudonymize_name(participant['Name'])
+                participant['Matrikelnr'] = pseudonymize_matrikelnr(participant['Matrikelnr'])
+
 
     studies = json2studies(data)
 
