@@ -201,9 +201,10 @@ def test_one_course2csv(course_data):
 
 # for test_run_courselist() & test_run_courselist()
 class Args:
-    def __init__(self, filename, course_list, output):
+    def __init__(self, filename, course_list, pseudonymize, output):
         self.filename = filename
         self.courselist = course_list
+        self.pseudonymize = pseudonymize
         self.output = output
 
 
@@ -221,6 +222,7 @@ def test_run_courselist():
     args = Args(
         filename="json2csv/tests/test_data.json",
         course_list="true",
+        pseudonymize=None,
         output="json2csv/tests/runTest.csv"
     )
     expected_output = ('Code;Course;Lehrperson;ZU;AN;KA;AB;ST;Summe;anzahlPlaetze;bisherZugelassen;offeneBewerbungen;davonMitHoherPrio;davonMitNiedrigerPrio\n'
@@ -237,6 +239,7 @@ def test_run_without_courselist():
     args = Args(
         filename="json2csv/tests/test_data.json",
         course_list=None,
+        pseudonymize=None,
         output="json2csv/tests/runTestWithoutCourselist.csv"
     )
     expected_output = ('Name;Matrikelnr;Studiengang;FS;Sum;ZU;AN;KA;AB;ST;B21.1 - B23.1 VCAT2 Visual Computing -  Aktuelle Themen 2: Applikationsentwicklung unter iOS (Ü) - 2.Gruppe;B21.2 - B23.2 WT2: Usability (Ü) - 1.Gruppe\n'
