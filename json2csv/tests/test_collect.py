@@ -116,7 +116,7 @@ def test_json2studies(course_data):
         'John Doe': [{'Course': 'B21.2 - B23.2 WT2: Usability (Ü) - 1.Gruppe','FS': '6','Los': '9915927829841474','Matrikelnr': '100000','Name': 'John Doe','Prio': '1','Status': 'AB','Studiengang': 'IMI (B)','Zeit': '17.09.202416:24:27'}],
         'Max Mustermann': [{'Course': 'B21.2 - B23.2 WT2: Usability (Ü) - 1.Gruppe','FS': '12','Los': '8295249285091866','Matrikelnr': '100001','Name': 'Max Mustermann','Prio': '1','Status': 'AB','Studiengang': 'IMI (B)','Zeit': '11.09.202415:16:32'}],
         'Noah Clark': [{'Course': 'B21.1 - B23.1 VCAT2 Visual Computing -  Aktuelle ''Themen 2: Applikationsentwicklung unter iOS (Ü) - ''2.Gruppe','FS': '10','Los': '8266970658560711','Matrikelnr': '100003','Name': 'Noah Clark','Prio': '2','Status': 'ZU','Studiengang': 'IMI (B)','Zeit': '26.09.202410:58:39'}]}
-    assert result == expected_result
+    assert result[0] == expected_result
 
 
 def test_short_title(course_data):
@@ -153,7 +153,7 @@ def test_oneStudi2csv(course_data):
 
 
 def test_studies2csv(course_data):
-    studies = collect.json2studies(course_data)
+    studies = collect.json2studies(course_data)[0]
     courses = [collect.short_title(c) for c in course_data]
     expected_output =  ('Name;Matrikelnr;Studiengang;FS;Sum;ZU;AN;KA;AB;ST;B21.1 - B23.1 VCAT2 Visual '
                         'Computing -  Aktuelle Themen 2: Applikationsentwicklung unter iOS (Ü) - '
@@ -174,7 +174,7 @@ def test_studies2csv(course_data):
 
 
 def test_courses2csv(course_data):
-    studies = collect.json2studies(course_data)
+    studies = collect.json2studies(course_data)[0]
     for course in course_data:
         studies = collect.append_course(studies, course)
 
@@ -188,7 +188,7 @@ def test_courses2csv(course_data):
 
 
 def test_one_course2csv(course_data):
-    studies = collect.json2studies(course_data)
+    studies = collect.json2studies(course_data)[0]
     for course in course_data:
         studies = collect.append_course(studies, course)
 
@@ -201,10 +201,11 @@ def test_one_course2csv(course_data):
 
 # for test_run_courselist() & test_run_courselist()
 class Args:
-    def __init__(self, filename, course_list, pseudonymize, output):
+    def __init__(self, filename, course_list, pseudonymize, electives_only, output):
         self.filename = filename
         self.courselist = course_list
         self.pseudonymize = pseudonymize
+        self.electives = electives_only
         self.output = output
 
 
@@ -223,6 +224,7 @@ def test_run_courselist():
         filename="json2csv/tests/test_data.json",
         course_list="true",
         pseudonymize=None,
+        electives_only=None,
         output="json2csv/tests/runTest.csv"
     )
     expected_output = ('Code;Course;Lehrperson;ZU;AN;KA;AB;ST;Summe;anzahlPlaetze;bisherZugelassen;offeneBewerbungen;davonMitHoherPrio;davonMitNiedrigerPrio\n'
@@ -240,6 +242,7 @@ def test_run_without_courselist():
         filename="json2csv/tests/test_data.json",
         course_list=None,
         pseudonymize=None,
+        electives_only= None,
         output="json2csv/tests/runTestWithoutCourselist.csv"
     )
     expected_output = ('Name;Matrikelnr;Studiengang;FS;Sum;ZU;AN;KA;AB;ST;B21.1 - B23.1 VCAT2 Visual Computing -  Aktuelle Themen 2: Applikationsentwicklung unter iOS (Ü) - 2.Gruppe;B21.2 - B23.2 WT2: Usability (Ü) - 1.Gruppe\n'

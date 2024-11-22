@@ -1,4 +1,3 @@
-import hashlib
 import json
 import re
 import itertools
@@ -7,7 +6,6 @@ from faker import Faker
 from anmeldungen import ANMELDUNGS_STATI
 from to_cvs import courses2csv, studies2csv
 
-#COURSE_NAME_RE = r'B21.\d - B23.\d(.*?)\(Ü\)'
 COURSE_NAME_RE = r'(.*)'
 
 name_map = {}
@@ -92,7 +90,7 @@ def json2studies(data):
     for studi_name, anmeldungen in studies.items():
         name = studi_name
         newdict[name] = sorted(anmeldungen,key=lambda item: item["Course"])
-    return newdict
+    return newdict, data
 
 
 def short_title(course):
@@ -133,8 +131,11 @@ def run(args):
                 participant['Name'] = pseudonymize_name(participant['Name'])
                 participant['Matrikelnr'] = pseudonymize_matrikelnr(participant['Matrikelnr'])
 
+    if(args.electives):
+        global COURSE_NAME_RE
+        COURSE_NAME_RE = r'B21.\d - B23.\d(.*?)\(Ü\)'
 
-    studies = json2studies(data)
+    studies, data = json2studies(data)
 
     # print(studies)
     # print(len(studies))
